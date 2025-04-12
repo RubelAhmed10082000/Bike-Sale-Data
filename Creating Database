@@ -1,0 +1,106 @@
+-- Sales
+
+CREATE TABLE Sales (
+    Transaction_ID INTEGER PRIMARY KEY,
+    Sales_Order INTEGER,
+    Date DATE,
+    Product_Description TEXT,
+    Revenue INTEGER,
+    Total_Profit INTEGER
+);
+
+INSERT INTO Sales (Transaction_ID, Sales_Order, Date, Product_Description, Revenue, Total_Profit)
+SELECT ROW_NUMBER() OVER (), df.Sales_Order, df.Date, df.Product_Description, df.Revenue, df.Total_Profit
+FROM df
+WHERE df.Revenue IS NOT NULL
+AND df.Total_Profit IS NOT NULL;
+
+-- Dates
+
+CREATE TABLE Dates(
+    Date_ID INTEGER,
+    Date DATE, 
+    Day INTEGER,
+    Month TEXT,
+    Year INTEGER,
+    PRIMARY KEY (Date_ID)
+);
+
+INSERT INTO Dates (Date_ID, Date, Day, Month, Year)
+SELECT ROW_NUMBER() OVER (ORDER BY df.Date), df.Date, df.Day, df.Month, df.Year
+FROM df
+WHERE df.Day IS NOT NULL;
+
+-- Product
+
+CREATE TABLE Product (
+    Product_ID INTEGER PRIMARY KEY,
+    Type TEXT,
+    Color TEXT,
+    Wheel_Size INTEGER,
+    Unit_Price INTEGER
+);
+
+INSERT INTO Product (Product_ID, Type, Color, Wheel_Size, Unit_Price)
+SELECT ROW_NUMBER() OVER (ORDER BY df.Type), df.Type, df.Color, df."Wheel Size", df.Unit_Price
+FROM df;
+
+-- Customer
+
+CREATE TABLE Customer (
+    Customer_ID INTEGER PRIMARY KEY,
+    Age_Group TEXT,
+    Gender TEXT,
+    Country TEXT
+);
+
+INSERT INTO Customer (Customer_ID, Age_Group, Gender, Country)
+SELECT ROW_NUMBER() OVER (ORDER BY df.Age_Group), df.Age_Group, df.Customer_Gender, df.Country
+FROM df;
+
+-- Orders
+
+CREATE TABLE Orders (
+    Order_ID INTEGER PRIMARY KEY,
+    Sales_Order INTEGER,
+    Order_Quantity INTEGER,
+    Total_Cost INTEGER,
+    Total_Profit INTEGER,
+    Revenue INTEGER,
+	FOREIGN KEY (Sales_Order) REFERENCES Sales (Sales_Order),
+	FOREIGN KEY (Total_Profit) REFERENCES Sales (Total_Profit),
+	FOREIGN KEY (Revenue) REFERENCES Sales (Revenue)
+);
+
+INSERT INTO Orders (Order_ID, Sales_Order, Order_Quantity, Total_Cost, Total_Profit, Revenue)
+SELECT ROW_NUMBER() OVER (ORDER BY df.Sales_Order), df.Sales_Order, df.Order_Quantity, df.Total_Cost, df.Total_Profit, df.Revenue
+FROM df;
+
+CREATE TABLE Fact_Table (
+    Transaction_ID INTEGER REFERENCES Sales (Transaction_ID),
+    Date_ID INTEGER REFERENCES Dates (Date_ID),
+    Product_ID INTEGER REFERENCES Product (Product_ID),
+    Customer_ID INTEGER REFERENCES Customer (Customer_ID),
+    Order_ID INTEGER REFERENCES Orders (Order_ID)
+);
+
+INSERT INTO Fact_Table (
+    Transaction_ID, 
+    Date_ID,
+    Product_ID,
+    Customer_ID,
+    Order_ID
+)
+SELECT 
+    Sales.Transaction_ID,
+    Dates.Date_ID,
+    Product.Product_ID,
+    Customer.Customer_ID,
+    Orders.Order_ID
+FROM Sales
+JOIN Dates ON Sales.Date = Dates.Date
+JOIN Orders ON Orders.Sales_Order = Sales.Sales_Order
+JOIN Product ON Sales.Product_Description = Product.Type
+JOIN Customer ON Orders.Sales_Order = Customer.Customer_ID;
+
+SELECT * FROM Fact_Table;
