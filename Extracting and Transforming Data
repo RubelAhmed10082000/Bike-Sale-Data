@@ -1,0 +1,64 @@
+import pandas as pd
+import numpy as np
+
+#Drop columns: Day, Month, Year, Age, Product_category, Sub Category
+df_dropped_columns = df.drop(columns = ["Day","Month","Year","Customer_Age","Product_Category","Sub_Category"])
+#Keep age
+df_dropped_columns
+
+
+#Deal with nulls
+df = df_dropped_columns
+df.isnull().sum()
+df = df.replace(0,np.nan)
+df
+
+df
+df['Customer_Gender']=df['Customer_Gender'].astype("category")
+df
+df['Customer_Gender'] = df['Customer_Gender'].replace("F","Female")
+df['Customer_Gender'] = df['Customer_Gender'].replace("M","Male")
+df['Age_Group'] = df['Age_Group'].astype("category")
+df
+
+df2 = df.copy()
+df["Type"] = df2.Product_Description.str.split(" ", expand=True)[0]
+
+#Sanity Check
+df["Total_Cost"] = df['Unit_Cost'] * df["Order_Quantity"]
+df
+df["Total_Profit"] = df['Revenue']- df['Total_Cost']
+df
+df['Unit_Profit'] = df['Unit_Price'] - df["Unit_Cost"]
+df['Unit_Price'] = df['Revenue'] / df['Order_Quantity']
+df['Unit_Cost'] = df['Total_Cost'] / df["Order_Quantity"]
+df
+df.isna().sum().sort_values(ascending = False)
+#Make functions: divide, multiplication, addition, subtraction and use those to make the calculations
+
+#Filling Null Value Columns
+df['Unit_Cost'] = df['Unit_Cost'].fillna(df['Total_Cost']/df['Order_Quantity'])
+df
+df['Total_Profit'] = df['Total_Profit'].fillna(df['Revenue']-df['Total_Cost'])
+df
+df['Unit_Price'] = df['Unit_Price'].fillna(df['Revenue']/df['Order_Quantity'])
+df
+df['Total_Cost'] = df['Total_Cost'].fillna(df['Unit_Cost']*df['Order_Quantity'])
+df
+df['Revenue'] = df['Revenue'].fillna(df["Unit_Price"]*df['Order_Quantity'])
+df.isna().sum().sort_values(ascending = False)
+df
+
+df['Sales_Order #']
+df.rename(columns={"Sales_Order #": "Sales_Order"}, inplace=True)
+df["Wheel Size"] = df.Product_Description.str.split(",", expand=True)[1]
+df["Color"] = df.Product_Description.str.extract(r'(\bBlack\b|\bSilver\b|\bRed\b|\bBlue\b|\bGreen\b|\bYellow\b|\bWhite\b|\bGray\b)', expand=True)
+grouped_df = df[['Date', 'Country', 'Revenue']].sort_values(by=['Date'])
+grouped_df
+
+# Fix the calculation of 'Profit' and add it to the DataFrame
+
+df = df.rename(columns = {" Unit_Cost ":"Unit_Cost"," Unit_Price ":"Unit_Price"," Profit ":"Total_Profit"," Cost ":"Total_Cost"})
+#Create a function that strips text of white space 
+df["Revenue2"] = df["Unit_Price"] * df["Order_Quantity"]
+df.drop(columns="Revenue2",inplace = True)
